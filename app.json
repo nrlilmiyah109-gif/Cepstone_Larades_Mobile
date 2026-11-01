@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "larades-mobile",
+    "name": "LARADES Mobile",
     "slug": "larades-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.larades.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -19,6 +20,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-sharing",
+      "expo-status-bar",
+      "expo-font"
+    ]
   }
 }
