@@ -15,6 +15,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { SURAT_CONFIG } from '../../data/suratConfig';
 import { apiFetch } from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
+import { prepareFileForUpload } from '../../utils/formDataHelper';
 
 const MAX_KETERANGAN = 500;
 
@@ -104,15 +105,14 @@ export default function AjukanSuratView({ onCancel, onSuccess, onNavigateProfil 
         })
       );
 
-      Object.entries(files).forEach(([key, file]) => {
-        if (file && file.uri) {
-          payload.append(`file_upload[${key}]`, {
-            uri: file.uri,
-            name: file.name,
-            type: file.type,
-          });
+      for (const [key, file] of Object.entries(files)) {
+        if (file && (file.uri || file.file)) {
+          const filePart = await prepareFileForUpload(file);
+          if (filePart) {
+            payload.append(`file_upload[${key}]`, filePart);
+          }
         }
-      });
+      }
 
       await apiFetch('/permohonan', {
         method: 'POST',

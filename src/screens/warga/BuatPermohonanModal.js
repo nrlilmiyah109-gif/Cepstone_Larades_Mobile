@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { apiFetch } from '../../config/api';
+import { prepareFileForUpload } from '../../utils/formDataHelper';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 
@@ -75,27 +76,17 @@ export default function BuatPermohonanModal({ visible, onClose, onSuccess }) {
 
       // Lampirkan KTP jika ada
       if (fileKtp) {
-        if (Platform.OS === 'web' && fileKtp.file) {
-          payload.append('file_upload[ktp]', fileKtp.file);
-        } else {
-          payload.append('file_upload[ktp]', {
-            uri: fileKtp.uri,
-            name: fileKtp.name,
-            type: fileKtp.mimeType || 'image/jpeg',
-          });
+        const ktpPart = await prepareFileForUpload(fileKtp);
+        if (ktpPart) {
+          payload.append('file_upload[ktp]', ktpPart);
         }
       }
 
       // Lampirkan KK jika ada
       if (fileKk) {
-        if (Platform.OS === 'web' && fileKk.file) {
-          payload.append('file_upload[kk]', fileKk.file);
-        } else {
-          payload.append('file_upload[kk]', {
-            uri: fileKk.uri,
-            name: fileKk.name,
-            type: fileKk.mimeType || 'image/jpeg',
-          });
+        const kkPart = await prepareFileForUpload(fileKk);
+        if (kkPart) {
+          payload.append('file_upload[kk]', kkPart);
         }
       }
 

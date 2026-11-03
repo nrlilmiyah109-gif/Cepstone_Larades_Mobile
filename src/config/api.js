@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 export const DEFAULT_BASE_URL =
   Platform.OS === 'web'
     ? 'http://127.0.0.1:8000/api'
-    : 'http://192.168.1.38:8000/api';
+    : 'http://10.74.121.107:8000/api';
 
 const STORAGE_SERVER_KEY = '@larades_server_url';
 const STORAGE_TOKEN_KEY = '@larades_token';
@@ -18,10 +18,8 @@ export async function initServerUrl() {
     const saved = await AsyncStorage.getItem(STORAGE_SERVER_KEY);
     if (saved) {
       let cleaned = saved.trim().replace(/\/+$/, '');
-      if (cleaned.includes('192.168.1.43') || cleaned.includes('192.168.1.45')) {
-        cleaned = cleaned
-          .replace('192.168.1.43', '192.168.1.38')
-          .replace('192.168.1.45', '192.168.1.38');
+      if (cleaned.includes('192.168.') || cleaned.includes('127.0.0.1') && Platform.OS !== 'web') {
+        cleaned = 'http://10.74.121.107:8000/api';
         await AsyncStorage.setItem(STORAGE_SERVER_KEY, cleaned);
       }
       currentBaseUrl = cleaned;

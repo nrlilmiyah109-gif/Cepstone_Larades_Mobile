@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { SURAT_CONFIG } from '../../data/suratConfig';
 import { apiFetch } from '../../config/api';
+import { prepareFileForUpload } from '../../utils/formDataHelper';
 
 
 const NAMA_BULAN_SHORT = [
@@ -166,15 +167,14 @@ export default function PermohonanSayaView({
         })
       );
 
-      Object.entries(revisiFiles).forEach(([key, file]) => {
-        if (file && file.uri) {
-          payload.append(`file_upload[${key}]`, {
-            uri: file.uri,
-            name: file.name,
-            type: file.type,
-          });
+      for (const [key, file] of Object.entries(revisiFiles)) {
+        if (file && (file.uri || file.file)) {
+          const filePart = await prepareFileForUpload(file);
+          if (filePart) {
+            payload.append(`file_upload[${key}]`, filePart);
+          }
         }
-      });
+      }
 
       await apiFetch(`/permohonan/${revisiItem.id}/revisi`, {
         method: 'POST',
