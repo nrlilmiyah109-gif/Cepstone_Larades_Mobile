@@ -8,7 +8,12 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import { getCurrentBaseUrl, setServerUrl, DEFAULT_BASE_URL } from '../config/api';
+import {
+  getCurrentBaseUrl,
+  setServerUrl,
+  resetServerUrlToDefault,
+  getDefaultBaseUrl,
+} from '../config/api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ServerConfigModal({ visible, onClose, onSaved }) {
@@ -27,7 +32,7 @@ export default function ServerConfigModal({ visible, onClose, onSaved }) {
     }
 
     try {
-      await setServerUrl(url);
+      await setServerUrl(url, true);
       Alert.alert('Berhasil', 'URL Server berhasil disimpan.');
       if (onSaved) onSaved(url);
       onClose();
@@ -36,8 +41,15 @@ export default function ServerConfigModal({ visible, onClose, onSaved }) {
     }
   };
 
-  const handleReset = () => {
-    setUrl(DEFAULT_BASE_URL);
+  const handleReset = async () => {
+    try {
+      const def = await resetServerUrlToDefault();
+      setUrl(def);
+      Alert.alert('Mode Otomatis Aktif', `URL server otomatis mendeteksi IP laptop:\n${def}`);
+      if (onSaved) onSaved(def);
+    } catch (_e) {
+      setUrl(getDefaultBaseUrl());
+    }
   };
 
   return (
