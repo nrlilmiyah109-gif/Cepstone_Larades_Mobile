@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { SURAT_CONFIG } from '../../data/suratConfig';
+import DatePickerField from '../../components/DatePickerField';
 import { apiFetch } from '../../config/api';
 import { useAuth } from '../../context/AuthContext';
 import { prepareFileForUpload } from '../../utils/formDataHelper';
@@ -30,6 +31,7 @@ export default function AjukanSuratView({ onCancel, onSuccess, onNavigateProfil 
   const [setuju, setSetuju] = useState(false);
   const [loading, setLoading] = useState(false);
   const [jenisModalVisible, setJenisModalVisible] = useState(false);
+  const [activeDropdownField, setActiveDropdownField] = useState(null);
 
   const suratTerpilih = SURAT_CONFIG[jenisSurat];
 
@@ -73,6 +75,16 @@ export default function AjukanSuratView({ onCancel, onSuccess, onNavigateProfil 
         'Anda harus mencentang pernyataan bahwa data yang diajukan sudah benar.'
       );
       return;
+    }
+
+    // Periksa data isian surat wajib
+    if (suratTerpilih?.fields) {
+      for (const f of suratTerpilih.fields) {
+        if (!formData[f.name] || !String(formData[f.name]).trim()) {
+          Alert.alert('Data Belum Lengkap', `${f.label} wajib diisi atau dipilih.`);
+          return;
+        }
+      }
     }
 
     // Periksa dokumen wajib
@@ -279,19 +291,106 @@ export default function AjukanSuratView({ onCancel, onSuccess, onNavigateProfil 
             </View>
           </View>
 
-          {suratTerpilih.fields.map((f) => (
-            <View key={f.name} style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>{f.label} *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={`Masukkan ${f.label.toLowerCase()}...`}
-                value={formData[f.name] || ''}
-                onChangeText={(t) =>
-                  setFormData((prev) => ({ ...prev, [f.name]: t }))
-                }
-              />
-            </View>
-          ))}
+          {suratTerpilih.fields.map((f) => {
+            // 1. Input Tanggal (type: 'date' atau nama tanggal_*)
+            if (f.type === 'date' || f.name === 'tanggal_lahir' || f.name === 'tanggal_meninggal') {
+              return (
+                <View key={f.name} style={styles.fieldGroup}>
+                  <DatePickerField
+                    label={`${f.label} *`}
+                    value={formData[f.name] || ''}
+                    placeholder={`Pilih ${f.label.toLowerCase()}...`}
+                    maximumDate={new Date()}
+                    onChange={(val) =>
+                      setFormData((prev) => ({ ...prev, [f.name]: val }))
+                    }
+                    buttonStyle={styles.input}
+                  />
+                </View>
+              );
+            }
+
+            // 2. Jenis Kelamin (2 Pilihan)
+            if (f.name === 'jenis_kelamin' || (f.type === 'select' && f.options?.length === 2 && f.name.includes('kelamin'))) {
+              const options = f.options || ['Laki-laki', 'Perempuan'];
+              return (
+                <View key={f.name} style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>{f.label} *</Text>
+                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                    {options.map((opt) => {
+                      const isSelected = formData[f.name] === opt;
+                      return (
+                        <TouchableOpacity
+                          key={opt}
+                          style={[
+                            styles.twoChoicePill,
+                            isSelected && styles.twoChoicePillActive,
+                          ]}
+                          onPress={() =>
+                            setFormData((prev) => ({ ...prev, [f.name]: opt }))
+                          }
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons
+                            name={opt === 'Laki-laki' ? 'man-outline' : opt === 'Perempuan' ? 'woman-outline' : 'ellipse-outline'}
+                            size={16}
+                            color={isSelected ? '#187682' : '#55646d'}
+                          />
+                          <Text
+                            style={[
+                              styles.twoChoiceText,
+                              isSelected && styles.twoChoiceTextActive,
+                            ]}
+                          >
+                            {opt}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            }
+
+            // 3. Dropdown / Select (misalnya: Agama, Nama RT)
+            if (f.type === 'select' && f.options?.length > 0) {
+              return (
+                <View key={f.name} style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>{f.label} *</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownBtn}
+                    onPress={() => setActiveDropdownField(f)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownBtnText,
+                        !formData[f.name] && styles.dropdownBtnPlaceholder,
+                      ]}
+                    >
+                      {formData[f.name] || `-- Pilih ${f.label} --`}
+                    </Text>
+                    <Ionicons name="chevron-down" size={18} color="#1b7480" />
+                  </TouchableOpacity>
+                </View>
+              );
+            }
+
+            // 4. Default TextInput
+            return (
+              <View key={f.name} style={styles.fieldGroup}>
+                <Text style={styles.fieldLabel}>{f.label} *</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={`Masukkan ${f.label.toLowerCase()}...`}
+                  value={formData[f.name] || ''}
+                  onChangeText={(t) =>
+                    setFormData((prev) => ({ ...prev, [f.name]: t }))
+                  }
+                />
+              </View>
+            );
+          })}
         </View>
       )}
 
@@ -474,6 +573,21 @@ export default function AjukanSuratView({ onCancel, onSuccess, onNavigateProfil 
                     onPress={() => {
                       setJenisSurat(namaSurat);
                       setJenisModalVisible(false);
+                      const cfg = SURAT_CONFIG[namaSurat];
+                      if (cfg?.fields) {
+                        const initial = {};
+                        cfg.fields.forEach((f) => {
+                          if (f.name === 'agama' && warga?.agama) initial.agama = warga.agama;
+                          if (f.name === 'tempat_lahir' && warga?.tempat_lahir && namaSurat === 'Surat Keterangan Belum Menikah') {
+                            initial.tempat_lahir = warga.tempat_lahir;
+                          }
+                          if (f.name === 'tanggal_lahir' && warga?.tanggal_lahir && namaSurat === 'Surat Keterangan Belum Menikah') {
+                            initial.tanggal_lahir = String(warga.tanggal_lahir).slice(0, 10);
+                          }
+                          if (f.name === 'kewarganegaraan') initial.kewarganegaraan = 'Indonesia';
+                        });
+                        setFormData((prev) => ({ ...initial, ...prev }));
+                      }
                     }}
                   >
                     <View style={{ flex: 1 }}>
@@ -487,6 +601,64 @@ export default function AjukanSuratView({ onCancel, onSuccess, onNavigateProfil 
                       </Text>
                       <Text style={styles.optionHint} numberOfLines={1}>
                         {cfg.hint}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={18} color="#187682" />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal Dropdown untuk Field Tertentu (misal: Agama, Nama RT) */}
+      <Modal
+        visible={Boolean(activeDropdownField)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveDropdownField(null)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackdrop}
+          activeOpacity={1}
+          onPress={() => setActiveDropdownField(null)}
+        >
+          <View style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>
+                Pilih {activeDropdownField?.label || 'Pilihan'}
+              </Text>
+              <TouchableOpacity onPress={() => setActiveDropdownField(null)}>
+                <Ionicons name="close" size={20} color="#444" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 360 }}>
+              {activeDropdownField?.options?.map((opt) => {
+                const isSelected = formData[activeDropdownField.name] === opt;
+                return (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[styles.optionItem, isSelected && styles.optionItemActive]}
+                    onPress={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        [activeDropdownField.name]: opt,
+                      }));
+                      setActiveDropdownField(null);
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.optionTitle,
+                          isSelected && styles.optionTitleActive,
+                        ]}
+                      >
+                        {opt}
                       </Text>
                     </View>
                     {isSelected && (
@@ -886,5 +1058,31 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#7b9296',
     marginTop: 2,
+  },
+  twoChoicePill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#cfe2e4',
+    borderRadius: 8,
+    backgroundColor: '#fbfcfc',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  twoChoicePillActive: {
+    borderColor: '#187682',
+    backgroundColor: '#e6f4f5',
+  },
+  twoChoiceText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#475559',
+  },
+  twoChoiceTextActive: {
+    color: '#187682',
+    fontWeight: '700',
   },
 });

@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { SURAT_CONFIG } from '../../data/suratConfig';
+import DatePickerField from '../../components/DatePickerField';
 import { apiFetch } from '../../config/api';
 import { prepareFileForUpload } from '../../utils/formDataHelper';
 
@@ -64,6 +65,7 @@ export default function PermohonanSayaView({
   const [revisiData, setRevisiData] = useState({});
   const [revisiFiles, setRevisiFiles] = useState({});
   const [revisiLoading, setRevisiLoading] = useState(false);
+  const [activeDropdownField, setActiveDropdownField] = useState(null);
 
   // 6 Statistik persis Web (PermohonanSaya.jsx)
   const stats = useMemo(() => {
@@ -553,18 +555,105 @@ export default function PermohonanSayaView({
                 {configRevisi.fields?.length > 0 && (
                   <View style={{ marginBottom: 12 }}>
                     <Text style={styles.sectionHeaderTitle}>Data Surat</Text>
-                    {configRevisi.fields.map((field) => (
-                      <View key={field.name} style={{ marginBottom: 10 }}>
-                        <Text style={styles.fieldLabel}>{field.label}</Text>
-                        <TextInput
-                          style={styles.input}
-                          value={revisiData[field.name] || ''}
-                          onChangeText={(t) =>
-                            setRevisiData((prev) => ({ ...prev, [field.name]: t }))
-                          }
-                        />
-                      </View>
-                    ))}
+                    {configRevisi.fields.map((field) => {
+                      // 1. Tanggal (date)
+                      if (field.type === 'date' || field.name === 'tanggal_lahir' || field.name === 'tanggal_meninggal') {
+                        return (
+                          <View key={field.name} style={{ marginBottom: 12 }}>
+                            <DatePickerField
+                              label={`${field.label} *`}
+                              value={revisiData[field.name] || ''}
+                              placeholder={`Pilih ${field.label.toLowerCase()}...`}
+                              maximumDate={new Date()}
+                              onChange={(val) =>
+                                setRevisiData((prev) => ({ ...prev, [field.name]: val }))
+                              }
+                              buttonStyle={styles.input}
+                            />
+                          </View>
+                        );
+                      }
+
+                      // 2. Jenis Kelamin (2 Pilihan)
+                      if (field.name === 'jenis_kelamin' || (field.type === 'select' && field.options?.length === 2 && field.name.includes('kelamin'))) {
+                        const options = field.options || ['Laki-laki', 'Perempuan'];
+                        return (
+                          <View key={field.name} style={{ marginBottom: 12 }}>
+                            <Text style={styles.fieldLabel}>{field.label} *</Text>
+                            <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                              {options.map((opt) => {
+                                const isSelected = revisiData[field.name] === opt;
+                                return (
+                                  <TouchableOpacity
+                                    key={opt}
+                                    style={[
+                                      styles.twoChoicePill,
+                                      isSelected && styles.twoChoicePillActive,
+                                    ]}
+                                    onPress={() =>
+                                      setRevisiData((prev) => ({ ...prev, [field.name]: opt }))
+                                    }
+                                    activeOpacity={0.7}
+                                  >
+                                    <Ionicons
+                                      name={opt === 'Laki-laki' ? 'man-outline' : opt === 'Perempuan' ? 'woman-outline' : 'ellipse-outline'}
+                                      size={16}
+                                      color={isSelected ? '#187682' : '#55646d'}
+                                    />
+                                    <Text
+                                      style={[
+                                        styles.twoChoiceText,
+                                        isSelected && styles.twoChoiceTextActive,
+                                      ]}
+                                    >
+                                      {opt}
+                                    </Text>
+                                  </TouchableOpacity>
+                                );
+                              })}
+                            </View>
+                          </View>
+                        );
+                      }
+
+                      // 3. Dropdown / Select (misalnya: Agama, Nama RT)
+                      if (field.type === 'select' && field.options?.length > 0) {
+                        return (
+                          <View key={field.name} style={{ marginBottom: 12 }}>
+                            <Text style={styles.fieldLabel}>{field.label} *</Text>
+                            <TouchableOpacity
+                              style={styles.dropdownBtn}
+                              onPress={() => setActiveDropdownField(field)}
+                              activeOpacity={0.7}
+                            >
+                              <Text
+                                style={[
+                                  styles.dropdownBtnText,
+                                  !revisiData[field.name] && styles.dropdownBtnPlaceholder,
+                                ]}
+                              >
+                                {revisiData[field.name] || `-- Pilih ${field.label} --`}
+                              </Text>
+                              <Ionicons name="chevron-down" size={18} color="#1b7480" />
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      }
+
+                      // 4. Default TextInput
+                      return (
+                        <View key={field.name} style={{ marginBottom: 10 }}>
+                          <Text style={styles.fieldLabel}>{field.label}</Text>
+                          <TextInput
+                            style={styles.input}
+                            value={revisiData[field.name] || ''}
+                            onChangeText={(t) =>
+                              setRevisiData((prev) => ({ ...prev, [field.name]: t }))
+                            }
+                          />
+                        </View>
+                      );
+                    })}
                   </View>
                 )}
 
@@ -630,6 +719,64 @@ export default function PermohonanSayaView({
           </View>
         </Modal>
       )}
+
+      {/* Modal Dropdown untuk Field Revisi (Agama, Nama RT, dll) */}
+      <Modal
+        visible={Boolean(activeDropdownField)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveDropdownField(null)}
+      >
+        <TouchableOpacity
+          style={styles.dropdownModalBackdrop}
+          activeOpacity={1}
+          onPress={() => setActiveDropdownField(null)}
+        >
+          <View style={styles.dropdownModalCard}>
+            <View style={styles.dropdownModalHeader}>
+              <Text style={styles.modalHeaderTitle}>
+                Pilih {activeDropdownField?.label || 'Pilihan'}
+              </Text>
+              <TouchableOpacity onPress={() => setActiveDropdownField(null)}>
+                <Ionicons name="close" size={20} color="#444" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 360 }}>
+              {activeDropdownField?.options?.map((opt) => {
+                const isSelected = revisiData[activeDropdownField.name] === opt;
+                return (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[styles.optionItem, isSelected && styles.optionItemActive]}
+                    onPress={() => {
+                      setRevisiData((prev) => ({
+                        ...prev,
+                        [activeDropdownField.name]: opt,
+                      }));
+                      setActiveDropdownField(null);
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.optionTitle,
+                          isSelected && styles.optionTitleActive,
+                        ]}
+                      >
+                        {opt}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={18} color="#187682" />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   );
 }
@@ -1113,5 +1260,106 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     fontWeight: '700',
     color: '#ffffff',
+  },
+  twoChoicePill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#cfe2e4',
+    borderRadius: 8,
+    backgroundColor: '#fbfcfc',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  twoChoicePillActive: {
+    borderColor: '#187682',
+    backgroundColor: '#e6f4f5',
+  },
+  twoChoiceText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#475559',
+  },
+  twoChoiceTextActive: {
+    color: '#187682',
+    fontWeight: '700',
+  },
+  dropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#cfe2e4',
+    borderRadius: 8,
+    backgroundColor: '#fbfcfc',
+    paddingHorizontal: 12,
+    paddingVertical: 11,
+  },
+  dropdownBtnText: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: '#1f2d30',
+  },
+  dropdownBtnPlaceholder: {
+    color: '#95a9ac',
+    fontWeight: '400',
+  },
+  dropdownModalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  dropdownModalCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#ffffff',
+    borderRadius: 14,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  dropdownModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f6fafb',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5eff0',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  modalHeaderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1b7480',
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f6',
+  },
+  optionItemActive: {
+    backgroundColor: '#eaf5f6',
+  },
+  optionTitle: {
+    fontSize: 12.5,
+    fontWeight: '600',
+    color: '#1f2d30',
+  },
+  optionTitleActive: {
+    color: '#187682',
+    fontWeight: '700',
   },
 });

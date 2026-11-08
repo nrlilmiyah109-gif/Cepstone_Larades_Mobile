@@ -14,6 +14,7 @@ import {
 import { apiFetch } from '../config/api';
 import { Ionicons } from '@expo/vector-icons';
 import { LaradesMark } from '../components/LaradesLogo';
+import DatePickerField from '../components/DatePickerField';
 
 const PERKS = [
   {
@@ -128,7 +129,7 @@ export default function RegisterScreen({ onNavigateLogin }) {
         return;
       }
       if (!manualData.tanggal_lahir.trim()) {
-        Alert.alert('Perhatian', 'Tanggal lahir wajib diisi (format: YYYY-MM-DD, contoh: 1995-08-17).');
+        Alert.alert('Perhatian', 'Tanggal lahir wajib dipilih.');
         return;
       }
       if (!manualData.pekerjaan.trim()) {
@@ -430,13 +431,13 @@ export default function RegisterScreen({ onNavigateLogin }) {
                 </View>
 
                 <View style={[styles.formGroup, { flex: 1 }]}>
-                  <Text style={styles.label}>Tgl Lahir (YYYY-MM-DD) *</Text>
-                  <TextInput
-                    style={styles.manualInput}
-                    placeholder="1995-08-17"
-                    placeholderTextColor="#9db0b3"
+                  <DatePickerField
+                    label="Tgl Lahir *"
                     value={manualData.tanggal_lahir}
-                    onChangeText={(val) => setManualData((p) => ({ ...p, tanggal_lahir: val }))}
+                    placeholder="Pilih tgl lahir..."
+                    maximumDate={new Date()}
+                    onChange={(val) => setManualData((p) => ({ ...p, tanggal_lahir: val }))}
+                    buttonStyle={styles.manualInput}
                   />
                 </View>
               </View>

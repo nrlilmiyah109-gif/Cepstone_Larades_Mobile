@@ -8,7 +8,18 @@ export const SURAT_CONFIG = {
     estimasi: '1-2 Hari Kerja',
     fields: [
       { name: 'kewarganegaraan', label: 'Kewarganegaraan' },
-      { name: 'nama_rt', label: 'Nama Ketua RT' },
+      {
+        name: 'nama_rt',
+        label: 'Nama Ketua RT',
+        type: 'select',
+        options: [
+          'Agus Susilo',
+          'Bambang Prayitno',
+          'Sutrisno',
+          'Prayitno',
+          'Nur Salim',
+        ],
+      },
     ],
     files: [
       { name: 'ktp', label: 'Upload KTP' },
@@ -64,7 +75,19 @@ export const SURAT_CONFIG = {
     hint: 'Menerangkan status belum menikah.',
     estimasi: '1-2 Hari Kerja',
     fields: [
-      { name: 'agama', label: 'Agama' },
+      {
+        name: 'agama',
+        label: 'Agama',
+        type: 'select',
+        options: [
+          'Islam',
+          'Kristen',
+          'Katolik',
+          'Hindu',
+          'Buddha',
+          'Konghucu',
+        ],
+      },
       { name: 'tempat_lahir', label: 'Tempat Lahir' },
       { name: 'tanggal_lahir', label: 'Tanggal Lahir', type: 'date' },
     ],
@@ -79,7 +102,12 @@ export const SURAT_CONFIG = {
     estimasi: '2 Hari Kerja',
     fields: [
       { name: 'nama_bayi', label: 'Nama Bayi' },
-      { name: 'jenis_kelamin', label: 'Jenis Kelamin' },
+      {
+        name: 'jenis_kelamin',
+        label: 'Jenis Kelamin',
+        type: 'select',
+        options: ['Laki-laki', 'Perempuan'],
+      },
       { name: 'tanggal_lahir', label: 'Tanggal Lahir', type: 'date' },
       { name: 'nama_ayah', label: 'Nama Ayah' },
       { name: 'nama_ibu', label: 'Nama Ibu' },

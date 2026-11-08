@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { apiFetch } from '../../config/api';
+import DatePickerField from '../../components/DatePickerField';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProfilWargaView() {
@@ -231,33 +232,103 @@ export default function ProfilWargaView() {
             </View>
 
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Tanggal Lahir (YYYY-MM-DD)</Text>
-              <TextInput
-                style={[styles.input, !isEditing && styles.inputDisabled]}
-                editable={isEditing}
-                value={formData.tanggal_lahir}
-                onChangeText={(t) => setFormData({ ...formData, tanggal_lahir: t })}
-              />
+              {isEditing ? (
+                <DatePickerField
+                  label="Tanggal Lahir"
+                  value={formData.tanggal_lahir}
+                  placeholder="Pilih tanggal lahir..."
+                  maximumDate={new Date()}
+                  onChange={(val) => setFormData({ ...formData, tanggal_lahir: val })}
+                  buttonStyle={styles.input}
+                />
+              ) : (
+                <>
+                  <Text style={styles.fieldLabel}>Tanggal Lahir</Text>
+                  <TextInput
+                    style={[styles.input, styles.inputDisabled]}
+                    editable={false}
+                    value={formData.tanggal_lahir}
+                  />
+                </>
+              )}
             </View>
 
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Jenis Kelamin</Text>
-              <TextInput
-                style={[styles.input, !isEditing && styles.inputDisabled]}
-                editable={isEditing}
-                value={formData.jenis_kelamin}
-                onChangeText={(t) => setFormData({ ...formData, jenis_kelamin: t })}
-              />
+              {isEditing ? (
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                  {['Laki-laki', 'Perempuan'].map((jk) => {
+                    const isSelected = formData.jenis_kelamin === jk;
+                    return (
+                      <TouchableOpacity
+                        key={jk}
+                        style={[
+                          styles.twoChoicePill,
+                          isSelected && styles.twoChoicePillActive,
+                        ]}
+                        onPress={() => setFormData({ ...formData, jenis_kelamin: jk })}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name={jk === 'Laki-laki' ? 'man-outline' : 'woman-outline'}
+                          size={16}
+                          color={isSelected ? '#187682' : '#55646d'}
+                        />
+                        <Text
+                          style={[
+                            styles.twoChoiceText,
+                            isSelected && styles.twoChoiceTextActive,
+                          ]}
+                        >
+                          {jk}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ) : (
+                <TextInput
+                  style={[styles.input, styles.inputDisabled]}
+                  editable={false}
+                  value={formData.jenis_kelamin}
+                />
+              )}
             </View>
 
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Agama</Text>
-              <TextInput
-                style={[styles.input, !isEditing && styles.inputDisabled]}
-                editable={isEditing}
-                value={formData.agama}
-                onChangeText={(t) => setFormData({ ...formData, agama: t })}
-              />
+              {isEditing ? (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingVertical: 4 }}>
+                  {['Islam', 'Kristen', 'Katolik', 'Hindu', 'Buddha', 'Konghucu'].map((agm) => {
+                    const isSelected = formData.agama === agm;
+                    return (
+                      <TouchableOpacity
+                        key={agm}
+                        style={[
+                          styles.chipPill,
+                          isSelected && styles.chipPillActive,
+                        ]}
+                        onPress={() => setFormData({ ...formData, agama: agm })}
+                      >
+                        <Text
+                          style={[
+                            styles.chipText,
+                            isSelected && styles.chipTextActive,
+                          ]}
+                        >
+                          {agm}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              ) : (
+                <TextInput
+                  style={[styles.input, styles.inputDisabled]}
+                  editable={false}
+                  value={formData.agama}
+                />
+              )}
             </View>
 
             <View style={styles.fieldGroup}>
@@ -580,5 +651,51 @@ const styles = StyleSheet.create({
   },
   btnDisabled: {
     opacity: 0.6,
+  },
+  twoChoicePill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#cfe2e4',
+    borderRadius: 8,
+    backgroundColor: '#fbfcfc',
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+  },
+  twoChoicePillActive: {
+    borderColor: '#187682',
+    backgroundColor: '#e6f4f5',
+  },
+  twoChoiceText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#475559',
+  },
+  twoChoiceTextActive: {
+    color: '#187682',
+    fontWeight: '700',
+  },
+  chipPill: {
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: '#f3f7f8',
+    borderWidth: 1,
+    borderColor: '#d6e4e6',
+  },
+  chipPillActive: {
+    backgroundColor: '#187682',
+    borderColor: '#187682',
+  },
+  chipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#55646d',
+  },
+  chipTextActive: {
+    color: '#ffffff',
   },
 });
