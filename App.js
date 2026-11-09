@@ -4,11 +4,12 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import LupaPasswordScreen from './src/screens/LupaPasswordScreen';
 import WargaHomeScreen from './src/screens/warga/WargaHomeScreen';
 
 function MainNavigator() {
   const { user, token, loading } = useAuth();
-  const [currentScreen, setCurrentScreen] = useState('login'); // 'login' | 'register'
+  const [currentScreen, setCurrentScreen] = useState('login'); // 'login' | 'register' | 'lupa-password'
 
   if (loading) {
     return (
@@ -23,7 +24,20 @@ function MainNavigator() {
     if (currentScreen === 'register') {
       return <RegisterScreen onNavigateLogin={() => setCurrentScreen('login')} />;
     }
-    return <LoginScreen onNavigateRegister={() => setCurrentScreen('register')} />;
+    if (currentScreen === 'lupa-password') {
+      return (
+        <LupaPasswordScreen
+          onNavigateLogin={() => setCurrentScreen('login')}
+          onNavigateRegister={() => setCurrentScreen('register')}
+        />
+      );
+    }
+    return (
+      <LoginScreen
+        onNavigateRegister={() => setCurrentScreen('register')}
+        onNavigateLupaPassword={() => setCurrentScreen('lupa-password')}
+      />
+    );
   }
 
   // Khusus Warga Desa

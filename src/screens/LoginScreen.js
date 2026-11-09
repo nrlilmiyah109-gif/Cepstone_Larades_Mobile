@@ -35,7 +35,7 @@ const LANGKAH = [
   },
 ];
 
-export default function LoginScreen({ onNavigateRegister }) {
+export default function LoginScreen({ onNavigateRegister, onNavigateLupaPassword }) {
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -175,7 +175,7 @@ export default function LoginScreen({ onNavigateRegister }) {
           {/* Link Lupa Password */}
           <TouchableOpacity
             style={styles.forgotLink}
-            onPress={() => Alert.alert('Informasi', 'Silakan hubungi petugas desa di kantor desa untuk reset password.')}
+            onPress={onNavigateLupaPassword}
           >
             <Text style={styles.forgotText}>Lupa password?</Text>
           </TouchableOpacity>
