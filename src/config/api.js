@@ -78,11 +78,19 @@ export async function initServerUrl() {
     const saved = await AsyncStorage.getItem(STORAGE_SERVER_KEY);
     const isManual = await AsyncStorage.getItem(STORAGE_IS_MANUAL_KEY);
 
-    // Jika user pernah mengatur URL manual lewat modal ⚙️ dan menandainya manual
-    if (saved && isManual === 'true') {
+    // Hanya pertahankan URL tersimpan jika user manual mengaturnya dan bukan URL lama/mati (seperti 127.0.0.1 atau lhr.life)
+    if (
+      saved &&
+      isManual === 'true' &&
+      !saved.includes('127.0.0.1') &&
+      !saved.includes('lhr.life') &&
+      !saved.includes('192.168.') &&
+      !saved.includes('10.74.') &&
+      !saved.includes('20.5.')
+    ) {
       currentBaseUrl = saved.trim().replace(/\/+$/, '');
     } else {
-      // Jika mode otomatis: selalu gunakan autoDefault agar selalu sinkron dengan laptop manapun yang menjalankan Expo
+      // Default selalu ke URL Cloudflare publik
       currentBaseUrl = autoDefault;
       await AsyncStorage.setItem(STORAGE_SERVER_KEY, autoDefault);
     }
