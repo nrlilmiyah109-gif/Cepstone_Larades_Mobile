@@ -41,12 +41,14 @@ export function detectHostIp() {
   return null;
 }
 
+export const PUBLIC_API_URL = 'https://ec3a0197a8534f.app.lhr.life/api';
+
 /**
  * Mendapatkan URL API default secara cerdas:
- * 1. Prioritas 1: process.env.EXPO_PUBLIC_API_URL (jika diatur di .env)
+ * 1. Prioritas 1: process.env.EXPO_PUBLIC_API_URL (jika diatur di .env atau EAS Build)
  * 2. Prioritas 2: http://127.0.0.1:8000/api untuk browser / web
- * 3. Prioritas 3: Deteksi IP host otomatis dari Expo Go (HP ke Laptop masing-masing)
- * 4. Fallback: http://127.0.0.1:8000/api
+ * 3. Prioritas 3: Deteksi IP host otomatis dari Expo Go (HP ke Laptop masing-masing saat dev)
+ * 4. Fallback: PUBLIC_API_URL (URL server publik online untuk rilis APK)
  */
 export function getDefaultBaseUrl() {
   if (process.env.EXPO_PUBLIC_API_URL) {
@@ -58,11 +60,11 @@ export function getDefaultBaseUrl() {
   }
 
   const hostIp = detectHostIp();
-  if (hostIp) {
+  if (hostIp && typeof __DEV__ !== 'undefined' && __DEV__) {
     return `http://${hostIp}:8000/api`;
   }
 
-  return 'http://127.0.0.1:8000/api';
+  return PUBLIC_API_URL;
 }
 
 export const DEFAULT_BASE_URL = getDefaultBaseUrl();

@@ -7,11 +7,17 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://ec3a0197a8534f.app.lhr.life/api"
       }
     },
     "production": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://ec3a0197a8534f.app.lhr.life/api"
       }
     }
   },
