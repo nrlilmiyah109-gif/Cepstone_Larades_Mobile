@@ -9,7 +9,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://ec3a0197a8534f.app.lhr.life/api"
+        "EXPO_PUBLIC_API_URL": "https://reactions-upon-evaluate-equality.trycloudflare.com/api"
       }
     },
     "production": {
@@ -17,7 +17,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://ec3a0197a8534f.app.lhr.life/api"
+        "EXPO_PUBLIC_API_URL": "https://reactions-upon-evaluate-equality.trycloudflare.com/api"
       }
     }
   },

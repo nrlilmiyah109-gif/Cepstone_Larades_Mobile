@@ -41,7 +41,7 @@ export function detectHostIp() {
   return null;
 }
 
-export const PUBLIC_API_URL = 'https://ec3a0197a8534f.app.lhr.life/api';
+export const PUBLIC_API_URL = 'https://reactions-upon-evaluate-equality.trycloudflare.com/api';
 
 /**
  * Mendapatkan URL API default secara cerdas:
